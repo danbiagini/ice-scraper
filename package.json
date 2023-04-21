@@ -3,9 +3,22 @@
     "start": "nodemon index.js"
   },
   "dependencies": {
-    "express": "^4.18.1"
+    "@types/cheerio": "^0.22.31",
+    "axios": "^1.3.5",
+    "cheerio": "^1.0.0-rc.12",
+    "express": "^4.18.1",
+    "minimist": "^1.2.8"
   },
   "devDependencies": {
-    "nodemon": "^2.0.19"
-  }
+    "@types/minimist": "^1.2.2",
+    "nodemon": "^2.0.19",
+    "ts-node": "^10.9.1",
+    "typescript": "^5.0.4"
+  },
+  "name": "gray-beard-seo",
+  "description": "Welcome to your shiny new Codespace running Express! We've got everything fired up and running for you to explore Express.",
+  "version": "1.0.0",
+  "main": "index.js",
+  "author": "d.biagini@gmail.com",
+  "license": "ISC"
 }

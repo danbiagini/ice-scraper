@@ -1,1 +1,4 @@
 node_modules/
+page_cache/*
+!page_cache/.gitkeep
+output

@@ -11,3 +11,8 @@ To run this application:
 ```
 npm start
 ```
+
+To run a scrape:
+```
+npx ts-node scrape.ts
+```
