@@ -68,17 +68,18 @@ export class AssociationScraper {
     }
 
     scrapAssociation(html: string, assoc: Association) {
-        console.log("parsing %d bytes for association %s", html.length, assoc.name);
+        console.log("parsing %d bytes for association %s, %s", html.length, assoc.name, assoc.assoc_web);
         const $ = cheerio.load(html);
 
         assoc.assoc_web = new URL($('td#assoc-web a:first').attr('href')!).toString();
         assoc.rinks = $('tr:contains("Rinks") td').text().trim()!;
     }
 
-    async *scrapeAssocList(html: string, max?: number) {
+    scrapeAssocList(html: string, max?: number): void {
         console.log("parsing %d bytes for association list", html.length);
         const $ = cheerio.load(html);
 
+        $('#mhr-ad-row').remove();
         $('#in-context-ad').remove();
         let count = 0;
         const rows = $('table.linked_table > tbody > tr');
@@ -93,15 +94,20 @@ export class AssociationScraper {
 
             const cols = $(e).find('td');
             const name = $(cols[0]).text();
-            const assocMeta = $(cols[0]).find('a').eq(0).attr('href');
+            const assocHref = $(cols[0]).find('a').eq(0).attr('href');
+
             const city = $(cols[1]).text();
             const state = $(cols[2]).text();
             const league = $(cols[3]).text().trim();
 
             let team = { name, city, state, league };
 
+            if (!assocHref) {
+                this.scrapedTeams.push(team);
+                return true;
+            }
 
-            const assocHtml = loadPage(this.rootDomain + '/' + assocMeta).then((html) => {
+            const assocHtml = loadPage(this.rootDomain + '/' + assocHref).then((html) => {
                 if (DEBUG && log_it) {
                     console.log(html);
                 }
@@ -109,13 +115,10 @@ export class AssociationScraper {
                 if (log_it) {
                     console.log(team);
                 }
-                yield team;
+                this.scrapedTeams.push(team);
             }, (err) => {
-                console.log("Error loading assocation %s, %s", name, err);
-                if (!assocMeta) {
-                    console.log("No assoc meta for %s ", team.name);
-                }
-                yield team;
+                console.log("Error loading assocation %s, %s", assocHref.toString(), err);
+                this.scrapedTeams.push(team);
             });
         })
     }
