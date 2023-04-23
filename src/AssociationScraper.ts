@@ -18,11 +18,17 @@ export class AssociationScraper {
     rootDomain: string;
     userAgent?: string;
     scrapedTeams: Association[];
+    cacheExpiry: number;
 
-    constructor(root: string, ua?: string) {
+    constructor(root: string, ua?: string, cacheExp?: number) {
         this.rootDomain = root;
         this.userAgent = ua;
         this.scrapedTeams = [];
+        if (cacheExp === undefined) {
+            this.cacheExpiry = (60 * 60 * 24 * 7);
+        } else {
+            this.cacheExpiry = cacheExp;
+        }
 
         console.log("New assoc scraper on ", this.rootDomain);
     }
@@ -38,8 +44,16 @@ export class AssociationScraper {
         console.log("parsing %d bytes for association %s, %s", html.length, assoc.name);
         const $ = cheerio.load(html);
 
-        assoc.assoc_web = new URL($('td#assoc-web a:first').attr('href')!).toString();
-        assoc.rinks = $('tr:contains("Rinks") td').text().trim()!;
+        try {
+            assoc.assoc_web = new URL($('td#assoc-web a:first').attr('href')!).toString();
+        } catch (error) {
+            console.log(`no web found for ${assoc.name}`);
+        }
+        let rinks = $('tr:contains("Rinks") td').text().trim();
+        console.log(rinks);
+        if (rinks.length) {
+            assoc.rinks = rinks.replace(/\s\s+/g, ' ');
+        }
     }
 
     async scrapeAssocList(html: string, max?: number) {
@@ -74,7 +88,7 @@ export class AssociationScraper {
                 continue;
             }
 
-            const assocHtml = await loadPage(this.rootDomain + '/' + assocHref, undefined, this.userAgent);
+            const assocHtml = await loadPage(this.rootDomain + '/' + assocHref, this.cacheExpiry, this.userAgent);
 
             if (!assocHtml) {
                 console.log("Error loading assocation %s, %s", assocHref.toString());
