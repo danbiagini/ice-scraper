@@ -1,6 +1,6 @@
 import axios, { AxiosRequestConfig } from 'axios';
 import cheerio from 'cheerio';
-import { last } from 'cheerio/lib/api/traversing';
+import { last, next } from 'cheerio/lib/api/traversing';
 import fs = require('fs');
 import minimist from 'minimist';
 
@@ -67,32 +67,39 @@ export class AssociationScraper {
         console.log("New assoc scraper on ", this.rootDomain);
     }
 
-    scrapAssociation(html: string, assoc: Association) {
-        console.log("parsing %d bytes for association %s, %s", html.length, assoc.name, assoc.assoc_web);
+    save() {
+        const host = new URL(this.rootDomain).hostname;
+        const now = Date.now().toString();
+        const fileName = `output/${host}-${now}.json`;
+        fs.writeFileSync(fileName, JSON.stringify(this.scrapedTeams));
+    }
+
+    scrapeAssociation(html: string, assoc: Association) {
+        console.log("parsing %d bytes for association %s, %s", html.length, assoc.name);
         const $ = cheerio.load(html);
 
         assoc.assoc_web = new URL($('td#assoc-web a:first').attr('href')!).toString();
         assoc.rinks = $('tr:contains("Rinks") td').text().trim()!;
     }
 
-    scrapeAssocList(html: string, max?: number): void {
+    async scrapeAssocList(html: string, max?: number) {
         console.log("parsing %d bytes for association list", html.length);
         const $ = cheerio.load(html);
 
-        $('#mhr-ad-row').remove();
-        $('#in-context-ad').remove();
+        $('.mhr-ad-row').remove();
+        $('.in-context-ad').remove();
         let count = 0;
         const rows = $('table.linked_table > tbody > tr');
-
-        $('table.linked_table > tbody > tr').each((i, e) => {
+        
+        for (let r of rows) {
             if (max && count >= max) {
-                return false;
+                break;
             }
             let log_it = false;
             if (count == 0) log_it = true;
-            count ++;
+            count++;
 
-            const cols = $(e).find('td');
+            const cols = $(r).find('td');
             const name = $(cols[0]).text();
             const assocHref = $(cols[0]).find('a').eq(0).attr('href');
 
@@ -104,25 +111,29 @@ export class AssociationScraper {
 
             if (!assocHref) {
                 this.scrapedTeams.push(team);
-                return true;
+                continue;
             }
 
-            const assocHtml = loadPage(this.rootDomain + '/' + assocHref).then((html) => {
-                if (DEBUG && log_it) {
-                    console.log(html);
-                }
-                this.scrapAssociation(html, team);
-                if (log_it) {
-                    console.log(team);
-                }
+            const assocHtml = await loadPage(this.rootDomain + '/' + assocHref);
+
+            if (!assocHtml) {
+                console.log("Error loading assocation %s, %s", assocHref.toString());
                 this.scrapedTeams.push(team);
-            }, (err) => {
-                console.log("Error loading assocation %s, %s", assocHref.toString(), err);
-                this.scrapedTeams.push(team);
-            });
-        })
+                continue;
+            }
+
+            if (DEBUG && log_it) {
+                console.log(assocHtml);
+            }
+            this.scrapeAssociation(assocHtml, team);
+            if (log_it) {
+                console.log(team);
+            }
+            this.scrapedTeams.push(team);
+        }
     }
 }
+
 
 async function main() {
     const argv = minimist(process.argv.slice(1));
@@ -134,8 +145,9 @@ async function main() {
 
     const fqdn = startUrl.match(/(https?\:\/\/[\w\.]+)\/?[\w\/]*/);
     const scraper = new AssociationScraper(fqdn[1]);
-    const teams = scraper.scrapeAssocList(root, argv['count']);
+    const teams = await scraper.scrapeAssocList(root, argv['count']);
     console.log(scraper.scrapedTeams.length);
+    scraper.save();
 }
 let DEBUG = false;
 let cachMaxAge;
