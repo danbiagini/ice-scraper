@@ -1,4 +1,4 @@
-import { AssociationScraper } from "../scrape";
+import { AssociationScraper } from "../src/AssociationScraper"
 import axios from 'axios';
 
 
