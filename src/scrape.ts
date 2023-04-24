@@ -18,7 +18,7 @@ async function main() {
     const root: string = await loadPage(startUrl, cachMaxAge);
 
     const fqdn = startUrl.match(/(https?\:\/\/[\w\.]+)\/?[\w\/]*/);
-    const scraper = new AssociationScraper(fqdn[1], undefined, cachMaxAge, filter);
+    const scraper = new AssociationScraper(fqdn[1], undefined, cachMaxAge, filter, 20);
     const teams = await scraper.scrapeAssocList(root, argv['count']);
     console.log(scraper.scrapedTeams.length);
     scraper.save();
