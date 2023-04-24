@@ -1,4 +1,4 @@
-import { AssociationScraper } from "../src/AssociationScraper"
+import { AssociationFilter, AssociationScraper } from "../src/AssociationScraper"
 import axios from 'axios';
 import * as snips from "./html-snips"
 
@@ -46,5 +46,50 @@ describe('testing Association class', () => {
     await a.scrapeAssocList(snips.html_one_row);
     expect(a.scrapedTeams.length).toBe(1);
     expect(a.scrapedTeams[0].assoc_web).toBeUndefined();
-  })
+  });
+
+  test('Assoc state filter with no match', async () => {
+    const f:AssociationFilter = {
+      state: "NY"
+    };
+    const a = new AssociationScraper("https://assocscrapewithnoweb", undefined, 0, f);
+    await a.scrapeAssocList(snips.html_one_row);
+    expect(a.scrapedTeams.length).toBe(0);
+  });
+
+  test('Assoc state filter with one match', async () => {
+    const f:AssociationFilter = {
+      state: "MA"
+    };
+    const a = new AssociationScraper("https://assocscrapewithnoweb", undefined, 0, f);
+    await a.scrapeAssocList(snips.html_one_row);
+    expect(a.scrapedTeams.length).toBe(1);
+  });
+
+  test('Assoc league filter with no match', async () => {
+    const f:AssociationFilter = {
+      league: "AHL"
+    };
+    const a = new AssociationScraper("https://assocscrapewithnoweb", undefined, 0, f);
+    await a.scrapeAssocList(snips.html_one_row);
+    expect(a.scrapedTeams.length).toBe(0);
+  });
+
+  test('Assoc league filter with one match', async () => {
+    const f:AssociationFilter = {
+      league: "ASHA"
+    };
+    const a = new AssociationScraper("https://assocscrapewithnoweb", undefined, 0, f);
+    await a.scrapeAssocList(snips.html_one_row);
+    expect(a.scrapedTeams.length).toBe(1);
+  });
+
+  test('Assoc City filter with one match', async () => {
+    const f:AssociationFilter = {
+      city: "Fairbanks"
+    };
+    const a = new AssociationScraper("https://assocscrapewithnoweb", undefined, 0, f);
+    await a.scrapeAssocList(snips.html_rows_with_ads);
+    expect(a.scrapedTeams.length).toBe(2);
+  });
 });

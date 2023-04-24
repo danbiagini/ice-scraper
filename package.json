@@ -1,6 +1,6 @@
 {
   "scripts": {
-    "start": "nodemon index.js",
+    "start": "nodemon src/index.js",
     "test": "npx jest"
   },
   "dependencies": {
@@ -22,7 +22,7 @@
   "name": "gray-beard-seo",
   "description": "Welcome to your shiny new Codespace running Express! We've got everything fired up and running for you to explore Express.",
   "version": "1.0.0",
-  "main": "index.js",
+  "main": "src/index.js",
   "author": "d.biagini@gmail.com",
   "license": "ISC"
 }
