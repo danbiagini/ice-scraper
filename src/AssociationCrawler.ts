@@ -21,8 +21,5 @@ export class AssociationCrawler {
     async crawl(start?: number, count?: number) {
         let i = start || 0;
         let last_i = (count ? i + count : this.scrapedTeams.length - 1);
-        while {
-            
-        }
     }
 }
