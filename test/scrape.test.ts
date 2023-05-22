@@ -21,7 +21,7 @@ describe('testing Association class', () => {
     expect(a.scrapedTeams.length).toBe(3);
     expect(a.scrapedTeams[2]!.name).toBe("Fairbanks Arctic Lions");
     expect(a.scrapedTeams[2]!.rinks).toBe("Dempsey Anderson Ice Arenas (Anchorage, AK)");
-    expect(a.scrapedTeams[2]!.assoc_web).toBe("https://www.hometeamsonline.com/teams/?u=alaskaallstars&s=hockey")
+    expect(a.scrapedTeams[2]!.assoc_web).toBe("https://www.hometeamsonline.com/teams/1?u=alaskaallstars&s=hockey")
   });
 
   test('Assoc scrape with no rinks', async () => {

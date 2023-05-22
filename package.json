@@ -1,7 +1,8 @@
 {
   "scripts": {
     "start": "nodemon src/index.js",
-    "test": "npx jest"
+    "test": "npx jest",
+    "devtest": "npx jest --watch"
   },
   "dependencies": {
     "@types/cheerio": "^0.22.31",

@@ -19,7 +19,8 @@ export const assoc_info_html = `<html><div class="desc-container-table">
     </tr>
     <tr>
         <th>Website</th>
-        <td id="assoc-web"><a href="https://www.hometeamsonline.com/teams/?u=alaskaallstars&amp;s=hockey" title="https://www.hometeamsonline.com/teams/?u=alaskaallstars&amp;s=hockey" target="_blank">https://www.hometeamsonline.com/teams/?u=alaskaallstars&s=hockey</a> <a href="website_request.php?o=a&n=352"><img class="info-add-button" alt="Edit association Website" title="Edit Association Website" src="/images/curved-arrow-yellow-right.png"></a></td>
+        
+        <td id="assoc-web"><a href="https://www.hometeamsonline.com/teams/1?u=alaskaallstars&amp;s=hockey" title="https://www.hometeamsonline.com/teams/?u=alaskaallstars&amp;s=hockey" target="_blank">https://www.hometeamsonline.com/teams/?u=alaskaallstars&s=hockey</a> <a href="website_request.php?o=a&n=352"><img class="info-add-button" alt="Edit association Website" title="Edit Association Website" src="/images/curved-arrow-yellow-right.png"></a></td>
         <th>Hockey Director</th>
         <td id="assoc-director"><a href="contact_request.php?o=a&a=a&n=352&p=4"><img class="info-add-button" alt="Add association Contact" title="Add Team Contact" src="/images/curved-arrow-green-right.png"></a></td>
     </tr>
@@ -212,7 +213,9 @@ export const assoc_no_web_html = `<html><div class="desc-container-table">
         </td>
     </tr>
 </table>
-</div></html>`;
+</div>
+<a href="/testing">Tests are nice</a>
+</html>`;
 
 export const html_one_row = `
 <!DOCTYPE html>
@@ -249,3 +252,12 @@ export const html_one_row = `
             </div>
 
 `;
+
+export const html_no_a = `
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+<div class="profile-upd-del">
+</head>
+</html>
+`

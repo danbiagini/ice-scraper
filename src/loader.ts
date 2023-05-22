@@ -42,8 +42,12 @@ export async function loadPage(url: string, max_age_secs: number = (60 * 60 * 24
     }
 
     if (max_age_secs != 0) {
-        fs.writeFileSync(fileName, response.data);
-        if (DEBUG) console.log("retrieved and cached %d bytes from %s to %s ", response.data.length, url, fileName);
+        try {
+            fs.writeFileSync(fileName, response.data);
+            if (DEBUG) console.log("retrieved and cached %d bytes from %s to %s ", response.data.length, url, fileName);
+        } catch (error) {
+            console.log("Error %s writing %d byes from %s to %s", error, response.data.length, url, fileName);
+        }
     } else {
         if (DEBUG) console.log("retrieved %d bytes from %s", response.data.length, url);
     }
