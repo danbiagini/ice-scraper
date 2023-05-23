@@ -261,3 +261,39 @@ export const html_no_a = `
 </head>
 </html>
 `
+
+export const html_root_w_3_anchors = `
+<!DOCTYPE html>
+<html lang = "en">
+  <div class="itsADiv">
+    <head>Root Awesomeness</head>
+    <h1>so cool</h1>
+    <a href="/page1">Root page link to Page 1</a>
+    <a href="/page2">Root page link to Page 2</a>
+    <a href="/page3">Root page link to Page 3</a>
+  </div>
+</html>
+`
+export const html_page_1 = `
+<!DOCTYPE html>
+<html lang = "en">
+  <div class="itsADiv">
+    <head><title>Page 1</title></head>
+    <h1>so cool</h1>
+    <a href="/page2">Page 1 link to Page 2</a>
+    <a href="/page3">Page 1 link to Page 3</a>
+  </div>
+</html>
+`
+
+export const html_page_2 = `
+<!DOCTYPE html>
+<html lang = "en">
+    <head><title>Page 2</title></head>
+    <div class="itsADiv">
+    <h1>so cool</h1>
+    <a href="/page1">Page 2 link to Page 1</a>
+    <a href="/page3">Page 2 link to Page 3</a>
+  </div>
+</html>
+`
