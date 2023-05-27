@@ -17,8 +17,14 @@ export class SiteCrawler {
     visited!: Map<string, Page>;
     pages: Page[];
     cacheExpiry: number = (60 * 60 * 24 * 7);
+    maxDepth: number = 3;
 
-    constructor(rootPage: string, ua?: string, filter?: string, delay?: number, cache?: number) {
+    constructor(rootPage: string, 
+                ua?: string, 
+                filter?: string, 
+                delay?: number, 
+                cache?: number,
+                max_depth?: number) {
         const rootUrl = new URL(rootPage);
         this.rootPage = rootUrl.href;
         this.visited = new Map<string, Page>;
@@ -28,9 +34,10 @@ export class SiteCrawler {
         if (filter) this.pageFilter = filter;
         if (delay) this.avgDelaySecs = delay;
         if (cache !== undefined) this.cacheExpiry = cache;
+        if (max_depth !== undefined) this.maxDepth = max_depth;
     }
 
-    scrapeLinks(page: URL, html: string, max: number = 0): Page {
+    scrapeLinks(page: URL, html: string): Page {
         const $ = cheerio.load(html);
 
         let count = 0;
@@ -45,10 +52,6 @@ export class SiteCrawler {
         p.title = $('title').text();
 
         for (let a of anchors) {
-            if (max && count >= max) {
-                break;
-            }
-
             const href: string = $(a).attr("href") || "";
 
             try {
@@ -61,8 +64,9 @@ export class SiteCrawler {
         return p;
     }
 
-    async crawl(page: string = this.rootPage) {
-        console.log("crawling %s", page);
+    async crawl(page: string = this.rootPage, max_depth: number = this.maxDepth) {
+
+        console.log("crawling %s, max_depth %d", page, max_depth);
         let delay = 0;
         if (this.avgDelaySecs) {
             delay = (this.avgDelaySecs * 2 * Math.random());
@@ -75,15 +79,19 @@ export class SiteCrawler {
         const hrefs = this.scrapeLinks(url, html);
         this.visited.set(page, hrefs);
 
-        for (let link of hrefs.links) {
-            if (!this.visited.has(link.href)) {
-                await this.crawl(link.href);
-            } else {
-                console.log("already crawled %s", link.href);
+        if (max_depth == 0) {
+            console.log("reached max depth, not traversing new links on %s", page)
+        } else {
+            for (let link of hrefs.links) {
+                if (!this.visited.has(link.href)) {
+                    await this.crawl(link.href, max_depth - 1);
+                } else {
+                    console.log("already crawled %s", link.href);
+                }
             }
+    
         }
         console.log("finished crawling %s, found %d links", page, hrefs.links.length);
-
     }
 
     pageCount(): number {

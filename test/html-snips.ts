@@ -280,6 +280,7 @@ export const html_page_1 = `
   <div class="itsADiv">
     <head><title>Page 1</title></head>
     <h1>so cool</h1>
+    <a href="/page1-a">Page 1 link to Page 1 sub A</a>
     <a href="/page2">Page 1 link to Page 2</a>
     <a href="/page3">Page 1 link to Page 3</a>
   </div>

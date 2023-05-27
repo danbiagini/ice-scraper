@@ -53,6 +53,10 @@ describe('testing SiteCrawler class', () => {
       status: 200
     })
     .mockResolvedValueOnce({
+      data: snips.html_no_a,
+      status: 200,
+    })
+    .mockResolvedValueOnce({
       data: snips.html_page_2,
       status: 200
     });
@@ -60,7 +64,7 @@ describe('testing SiteCrawler class', () => {
     expect(a.pageCount()).toBe(0);
 
     await a.crawl();
-    expect(a.pageCount()).toBe(4);
+    expect(a.pageCount()).toBe(5);
 
     expect(a.getLinks().length).toBe(3); // 3 links on root
     expect(a.getLinks()[0].href).toBe("https://www.google.com/page1"); // first link on root is for page 1
@@ -85,12 +89,101 @@ describe('testing SiteCrawler class', () => {
           "href": "https://www.google.com/page1",
           "origin": "https://www.google.com",
           "links": [
+          "https://www.google.com/page1-a",
           "https://www.google.com/page2",
           "https://www.google.com/page3"
           ],
           "title": "Page 1"
       },
-        "https://www.google.com/page2": {
+      "https://www.google.com/page1-a": {
+        "href": "https://www.google.com/page1-a",
+        "origin": "https://www.google.com",
+        "links": [],
+        "title": ""
+    },
+      "https://www.google.com/page2": {
+          "href":"https://www.google.com/page2",
+          "origin": "https://www.google.com",
+          "links":[
+          "https://www.google.com/page1",
+          "https://www.google.com/page3"
+          ],
+          "title":"Page 2"
+      },
+        "https://www.google.com/page3": {
+          "href": "https://www.google.com/page3",
+          "origin": "https://www.google.com",
+          "links": [],
+          "title": ""
+      }
+      }]
+    }
+    expect(JSON.stringify(a)).toBe(JSON.stringify(exp));
+  });
+
+  test('new crawler with max depth 1 layer w/ 3 layers of html anchors', async () => {
+    /* mock the first 2 GETs with HTML including anchors,
+    *  then no anchors.
+    */
+
+    mockedAxios.get.mockResolvedValue({
+      data: snips.html_no_a,
+      status: 200,
+    })
+    .mockResolvedValueOnce({
+      data: snips.html_root_w_3_anchors,
+      status: 200,
+    })
+    .mockResolvedValueOnce({
+      data: snips.html_page_1,
+      status: 200
+    })
+    .mockResolvedValueOnce({
+      data: snips.html_page_2,
+      status: 200
+    });
+    const a = new SiteCrawler("https://www.google.com", 
+                              undefined, 
+                              undefined, 
+                              undefined, 
+                              0,
+                              1);
+                              
+    expect(a.pageCount()).toBe(0);
+
+    await a.crawl();
+    expect(a.pageCount()).toBe(4);
+
+    expect(a.getLinks().length).toBe(3); // 3 links on root
+    expect(a.getLinks()[0].href).toBe("https://www.google.com/page1"); // first link on root is for page 1
+    expect(a.getLinks()[1].href).toBe("https://www.google.com/page2"); // second link on root is for page 2
+
+    expect(a.getLinks("https://www.google.com/page1").length).toBe(3); // 2 links on page 2
+
+    let exp = {
+      "root": "https://www.google.com/",
+      "pages": [{
+        "https://www.google.com/":{
+        "href": "https://www.google.com/",
+        "origin": "https://www.google.com",
+        "links": [
+          "https://www.google.com/page1",
+          "https://www.google.com/page2",
+          "https://www.google.com/page3",
+        ],
+        "title":""
+      },
+        "https://www.google.com/page1": {
+          "href": "https://www.google.com/page1",
+          "origin": "https://www.google.com",
+          "links": [
+          "https://www.google.com/page1-a",
+          "https://www.google.com/page2",
+          "https://www.google.com/page3"
+          ],
+          "title": "Page 1"
+      },
+      "https://www.google.com/page2": {
           "href":"https://www.google.com/page2",
           "origin": "https://www.google.com",
           "links":[
