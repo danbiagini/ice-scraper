@@ -13,6 +13,7 @@ async function main() {
     const startUrl = argv['url'];
     cachMaxAge = argv['max_age'] ? (argv['max_age']) : (60 * 60 * 24 * 7);
     const maxDepth = argv['max_depth'] ? argv['max_depth'] : 10;
+    const thirdPartiesEnabled = argv['crawl_third_parties'] ? argv['crawl_third_parties'] : false;
 
     const outFile = argv['out_file'] ? argv['out'] : `./output/${urlToFileName(startUrl)}-m${maxDepth}-${Date.now().toString()}.json`
     const c = new SiteCrawler(startUrl,
@@ -21,7 +22,7 @@ async function main() {
                               10, 
                               cachMaxAge, 
                               maxDepth);
-    await c.crawl();
+    await c.crawl(thirdPartiesEnabled);
     const out: string = JSON.stringify(c);
     console.log(out);
     try {

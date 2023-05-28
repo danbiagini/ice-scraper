@@ -16,7 +16,7 @@ export class SiteCrawler {
     visited!: Map<string, Page>;
     pages: Page[];
     cacheExpiry: number = (60 * 60 * 24 * 7);
-    maxDepth: number = 3;
+    maxDepth: number = 10;
 
     constructor(rootPage: string, 
                 ua?: string, 
@@ -63,7 +63,9 @@ export class SiteCrawler {
         return p;
     }
 
-    async crawl(page: string = this.rootPage, max_depth: number = this.maxDepth) {
+    async crawl(third_parties: boolean,
+                page: string = this.rootPage, 
+                max_depth: number = this.maxDepth) {
 
         console.log("crawling %s, max_depth %d", page, max_depth);
         let delay = 0;
@@ -83,7 +85,11 @@ export class SiteCrawler {
         } else {
             for (let link of hrefs.links) {
                 if (!this.visited.has(link.href)) {
-                    await this.crawl(link.href, max_depth - 1);
+                    if (third_parties || link.origin == url.origin) {
+                        await this.crawl(third_parties, link.href, max_depth - 1);
+                    } else {
+                        console.log("not crawling third party link %s", link.href);
+                    }
                 } else {
                     console.log("already crawled %s", link.href);
                 }
