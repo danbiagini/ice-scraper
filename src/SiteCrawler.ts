@@ -1,6 +1,5 @@
 import cheerio from 'cheerio';
 import { loadPage } from './loader';
-import fs = require('fs');
 
 export type Page = {
     href: string,
@@ -108,10 +107,11 @@ export class SiteCrawler {
 
     // https://javascript.info/json
     toJSON() {
-        return {
+        let o: Object = {
             root: this.rootPage,
             filter: this.pageFilter,
             pages: [Object.fromEntries(this.visited)]
-        }
+        };
+        return o;
     }
 }

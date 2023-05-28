@@ -2,7 +2,8 @@
   "scripts": {
     "start": "nodemon src/index.js",
     "test": "npx jest",
-    "devtest": "npx jest --watch"
+    "devtest": "npx jest --watch",
+    "crawl": "npx ts-node src/crawl.ts"
   },
   "dependencies": {
     "@types/cheerio": "^0.22.31",

@@ -9,6 +9,13 @@ function sleep(ms: number) {
       setTimeout(resolve, ms);
     });
 }
+export function urlToFileName(url: string): string {
+    const urlAsFileName = url.match(/https?\:\/\/([\w\.]+)(\/?[\w\/\.\?=]*)/);
+    if (!urlAsFileName) {
+        throw "Invalid URL for pattern";
+    }
+    return (urlAsFileName[1] + urlAsFileName[2].replace("/", "_"));
+}
 
 export async function loadPage(url: string, max_age_secs: number = (60 * 60 * 24 * 7), ua: string = edgeUa, delay_net_secs: number = 0) {
     const urlAsFileName = url.match(/https?\:\/\/([\w\.]+)(\/?[\w\/\.\?=]*)/);
