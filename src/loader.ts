@@ -10,7 +10,7 @@ function sleep(ms: number) {
     });
 }
 export function urlToFileName(url: string): string {
-    const urlAsFileName = url.match(/https?\:\/\/([\w\.]+)(\/?[\w\/\.\?=]*)/);
+    const urlAsFileName = url.match(/https?\:\/\/([\w\.]+)(\/?[\w\/\.\?=\-]*)/);
     if (!urlAsFileName) {
         throw "Invalid URL for pattern";
     }
