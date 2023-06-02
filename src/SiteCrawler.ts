@@ -63,7 +63,7 @@ export class SiteCrawler {
         return p;
     }
 
-    async crawl(third_parties: boolean,
+    async crawl(origin_filter?: (arg0: URL) => boolean,
                 page: string = this.rootPage, 
                 max_depth: number = this.maxDepth) {
 
@@ -85,16 +85,17 @@ export class SiteCrawler {
         } else {
             for (let link of hrefs.links) {
                 if (!this.visited.has(link.href)) {
-                    if (third_parties || link.origin == url.origin) {
-                        await this.crawl(third_parties, link.href, max_depth - 1);
-                    } else {
-                        console.log("not crawling third party link %s", link.href);
+                    if (link.origin != url.origin) {
+                        if (origin_filter === undefined || !origin_filter(link)) {
+                            console.log("not crawling external link %s", link.href);
+                            continue;
+                        }
                     }
+                    await this.crawl(origin_filter, link.href, max_depth - 1);
                 } else {
                     console.log("already crawled %s", link.href);
                 }
             }
-    
         }
         console.log("finished crawling %s, found %d links", page, hrefs.links.length);
     }

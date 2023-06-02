@@ -28,7 +28,7 @@ describe('testing SiteCrawler class', () => {
     const a = new SiteCrawler("https://www.google.com", undefined, undefined, undefined, 0);
     expect(a.pageCount()).toBe(0);
 
-    await a.crawl(true, undefined, undefined);
+    await a.crawl(() => true, undefined, undefined);
     expect(a.pageCount()).toBe(7);
     const links = a.getLinks();
 
@@ -63,7 +63,7 @@ describe('testing SiteCrawler class', () => {
     const a = new SiteCrawler("https://www.google.com", undefined, undefined, undefined, 0);
     expect(a.pageCount()).toBe(0);
 
-    await a.crawl(false);
+    await a.crawl(() => false);
     expect(a.pageCount()).toBe(5);
 
     expect(a.getLinks().length).toBe(3); // 3 links on root
@@ -151,7 +151,7 @@ describe('testing SiteCrawler class', () => {
                               
     expect(a.pageCount()).toBe(0);
 
-    await a.crawl(false);
+    await a.crawl(() => false);
     expect(a.pageCount()).toBe(4);
 
     expect(a.getLinks().length).toBe(3); // 3 links on root
@@ -202,7 +202,7 @@ describe('testing SiteCrawler class', () => {
     }
     expect(JSON.stringify(a)).toBe(JSON.stringify(exp));
   });
-  test('dont crawl 3rd party anchors', async () => {
+  test('dont crawl any 3rd party anchors', async () => {
     // Provide the data object to be returned
     // mockedAxios.get.mockResolvedValue({
     //   data: snips.assoc_info_html,
@@ -218,7 +218,36 @@ describe('testing SiteCrawler class', () => {
     const a = new SiteCrawler("https://www.google.com", undefined, undefined, undefined, 0);
     expect(a.pageCount()).toBe(0);
 
-    await a.crawl(false, undefined, undefined);
+    await a.crawl(() => false, undefined, undefined);
+    expect(a.pageCount()).toBe(6); // won't crawl hometeamsonline.com link
+    const links = a.getLinks();
+
+    expect(a.getLinks().length).toBe(6);
+    expect(a.getLinks()[0].href).toBe("https://www.google.com/contact_request.php?o=a&a=a&n=352&p=1");
+  });
+
+  test('dont crawl \'hometeamsonline.com\' 3rd party anchors', async () => {
+    // Provide the data object to be returned
+    // mockedAxios.get.mockResolvedValue({
+    //   data: snips.assoc_info_html,
+    // });
+    mockedAxios.get.mockResolvedValue({
+      data: snips.html_no_a,
+      status: 200,
+    })
+    .mockResolvedValueOnce({
+      data: snips.assoc_info_html,
+      status: 200,
+    });
+    const a = new SiteCrawler("https://www.google.com", undefined, undefined, undefined, 0);
+    expect(a.pageCount()).toBe(0);
+
+    await a.crawl((link: URL) => {
+      if (link.origin == 'https://www.hometeamsonline.com') {
+        return false;
+      }
+      return true;
+    }, undefined, undefined);
     expect(a.pageCount()).toBe(6); // won't crawl hometeamsonline.com link
     const links = a.getLinks();
 
