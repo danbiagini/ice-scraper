@@ -9,15 +9,17 @@ function sleep(ms: number) {
       setTimeout(resolve, ms);
     });
 }
-
-export async function loadPage(url: string, max_age_secs: number = (60 * 60 * 24 * 7), ua: string = edgeUa, delay_net_secs: number = 0) {
-    const urlAsFileName = url.match(/https?\:\/\/([\w\.]+)(\/?[\w\/\.\?=]*)/);
+export function urlToFileName(url: string): string {
+    const urlAsFileName = url.match(/https?\:\/\/([\w\.]+)(\/?[\w\/\.\?=\-]*)/);
     if (!urlAsFileName) {
         throw "Invalid URL for pattern";
     }
+    return (urlAsFileName[1] + urlAsFileName[2].replace(/\//g, "_"));
+}
 
-    const deSlashedPath = urlAsFileName[2].replace("/", "_");
-    const fileName = 'page_cache/' + urlAsFileName[1] + deSlashedPath;
+export async function loadPage(url: string, max_age_secs: number = (60 * 60 * 24 * 7), ua: string = edgeUa, delay_net_secs: number = 0) {
+
+    const fileName = 'page_cache/' + urlToFileName(url);
     const fStat = fs.statSync(fileName, { bigint: false, throwIfNoEntry: false });
 
     if (fStat && (fStat.mtimeMs + (max_age_secs * 1000)) > Date.now()) {
@@ -36,17 +38,29 @@ export async function loadPage(url: string, max_age_secs: number = (60 * 60 * 24
         await sleep(delay_net_secs * 1000);
     }
 
-    const response = await axios.get(url, config);
-    if (response.status != 200) {
-        console.log("response code not 200... ", response.status);
+    let page = "";
+    try {
+        const response = await axios.get(url, config);
+        if (response.status != 200) {
+            console.log("response code not 200... ", response.status);
+        }
+        page = response.data;
+    } catch (error) {
+        console.error("Error retrieving %s: %s", url, error);
     }
 
-    if (max_age_secs != 0) {
-        fs.writeFileSync(fileName, response.data);
-        if (DEBUG) console.log("retrieved and cached %d bytes from %s to %s ", response.data.length, url, fileName);
+    if (page.length == 0) {
+        return page;
+    } else if (max_age_secs != 0) {
+        try {
+            fs.writeFileSync(fileName, page);
+            if (DEBUG) console.log("retrieved and cached %d bytes from %s to %s ", page.length, url, fileName);
+        } catch (error) {
+            console.log("Error %s writing %d byes from %s to %s", error, page.length, url, fileName);
+        }
     } else {
-        if (DEBUG) console.log("retrieved %d bytes from %s", response.data.length, url);
+        if (DEBUG) console.log("retrieved %d bytes from %s", page.length, url);
     }
 
-    return (response.data);
+    return (page);
 }

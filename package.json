@@ -1,7 +1,9 @@
 {
   "scripts": {
     "start": "nodemon src/index.js",
-    "test": "npx jest"
+    "test": "npx jest",
+    "devtest": "npx jest --watch",
+    "crawl": "npx ts-node src/crawl.ts"
   },
   "dependencies": {
     "@types/cheerio": "^0.22.31",
@@ -19,8 +21,8 @@
     "ts-node": "^10.9.1",
     "typescript": "^5.0.4"
   },
-  "name": "gray-beard-seo",
-  "description": "Welcome to your shiny new Codespace running Express! We've got everything fired up and running for you to explore Express.",
+  "name": "ice-scraper",
+  "description": "Web crawler and scraper for sport (associations, leagues, schedules)",
   "version": "1.0.0",
   "main": "src/index.js",
   "author": "d.biagini@gmail.com",

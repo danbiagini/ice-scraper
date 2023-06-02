@@ -19,7 +19,8 @@ export const assoc_info_html = `<html><div class="desc-container-table">
     </tr>
     <tr>
         <th>Website</th>
-        <td id="assoc-web"><a href="https://www.hometeamsonline.com/teams/?u=alaskaallstars&amp;s=hockey" title="https://www.hometeamsonline.com/teams/?u=alaskaallstars&amp;s=hockey" target="_blank">https://www.hometeamsonline.com/teams/?u=alaskaallstars&s=hockey</a> <a href="website_request.php?o=a&n=352"><img class="info-add-button" alt="Edit association Website" title="Edit Association Website" src="/images/curved-arrow-yellow-right.png"></a></td>
+        
+        <td id="assoc-web"><a href="https://www.hometeamsonline.com/teams/1?u=alaskaallstars&amp;s=hockey" title="https://www.hometeamsonline.com/teams/?u=alaskaallstars&amp;s=hockey" target="_blank">https://www.hometeamsonline.com/teams/?u=alaskaallstars&s=hockey</a> <a href="website_request.php?o=a&n=352"><img class="info-add-button" alt="Edit association Website" title="Edit Association Website" src="/images/curved-arrow-yellow-right.png"></a></td>
         <th>Hockey Director</th>
         <td id="assoc-director"><a href="contact_request.php?o=a&a=a&n=352&p=4"><img class="info-add-button" alt="Add association Contact" title="Add Team Contact" src="/images/curved-arrow-green-right.png"></a></td>
     </tr>
@@ -212,7 +213,9 @@ export const assoc_no_web_html = `<html><div class="desc-container-table">
         </td>
     </tr>
 </table>
-</div></html>`;
+</div>
+<a href="/testing">Tests are nice</a>
+</html>`;
 
 export const html_one_row = `
 <!DOCTYPE html>
@@ -249,3 +252,49 @@ export const html_one_row = `
             </div>
 
 `;
+
+export const html_no_a = `
+<!DOCTYPE html>
+<html lang = "en">
+<head>
+<div class="profile-upd-del">
+</head>
+</html>
+`
+
+export const html_root_w_3_anchors = `
+<!DOCTYPE html>
+<html lang = "en">
+  <div class="itsADiv">
+    <head>Root Awesomeness</head>
+    <h1>so cool</h1>
+    <a href="/page1">Root page link to Page 1</a>
+    <a href="/page2">Root page link to Page 2</a>
+    <a href="/page3">Root page link to Page 3</a>
+  </div>
+</html>
+`
+export const html_page_1 = `
+<!DOCTYPE html>
+<html lang = "en">
+  <div class="itsADiv">
+    <head><title>Page 1</title></head>
+    <h1>so cool</h1>
+    <a href="/page1-a">Page 1 link to Page 1 sub A</a>
+    <a href="/page2">Page 1 link to Page 2</a>
+    <a href="/page3">Page 1 link to Page 3</a>
+  </div>
+</html>
+`
+
+export const html_page_2 = `
+<!DOCTYPE html>
+<html lang = "en">
+    <head><title>Page 2</title></head>
+    <div class="itsADiv">
+    <h1>so cool</h1>
+    <a href="/page1">Page 2 link to Page 1</a>
+    <a href="/page3">Page 2 link to Page 3</a>
+  </div>
+</html>
+`
