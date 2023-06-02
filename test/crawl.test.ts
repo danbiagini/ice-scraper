@@ -1,6 +1,7 @@
 import axios from 'axios';
 import * as snips from "./html-snips"
 import { SiteCrawler } from '../src/SiteCrawler';
+import {expect, jest, test} from '@jest/globals';
 
 // https://www.csrhymes.com/2022/03/09/mocking-axios-with-jest-and-typescript.html
 jest.mock('axios');
@@ -73,52 +74,52 @@ describe('testing SiteCrawler class', () => {
     expect(a.getLinks("https://www.google.com/page2").length).toBe(2); // 2 links on page 2
 
     let exp = {
-      "root": "https://www.google.com/",
-      "pages": [{
-        "https://www.google.com/":{
-        "href": "https://www.google.com/",
+      "rootPage": "https://www.google.com/",
+      "crawlStartTime": expect.anything(),
+      "crawlFinishTime": expect.anything(),
+      "visited": new Map([
+        ["https://www.google.com/", {"href": "https://www.google.com/",
+        "crawl_time": expect.anything(),
         "origin": "https://www.google.com",
         "links": [
-          "https://www.google.com/page1",
-          "https://www.google.com/page2",
-          "https://www.google.com/page3",
+        new URL("https://www.google.com/page1"),
+        new URL("https://www.google.com/page2"),
+        new URL("https://www.google.com/page3"),
         ],
-        "title":""
-      },
-        "https://www.google.com/page1": {
-          "href": "https://www.google.com/page1",
-          "origin": "https://www.google.com",
-          "links": [
-          "https://www.google.com/page1-a",
-          "https://www.google.com/page2",
-          "https://www.google.com/page3"
-          ],
-          "title": "Page 1"
-      },
-      "https://www.google.com/page1-a": {
-        "href": "https://www.google.com/page1-a",
+        "title":""}],
+        ["https://www.google.com/page1",{"href": "https://www.google.com/page1",
+        "crawl_time": expect.anything(),
+        "origin": "https://www.google.com",
+        "links": [
+          new URL("https://www.google.com/page1-a"),
+          new URL("https://www.google.com/page2"),
+          new URL("https://www.google.com/page3"),
+        ],
+        "title":"Page 1"}],
+        ["https://www.google.com/page1-a", {"href": "https://www.google.com/page1-a",
+        "crawl_time": expect.anything(),
         "origin": "https://www.google.com",
         "links": [],
-        "title": ""
-    },
-      "https://www.google.com/page2": {
+        "title": ""}],
+        ["https://www.google.com/page2", {
           "href":"https://www.google.com/page2",
+          "crawl_time": expect.anything(),
           "origin": "https://www.google.com",
           "links":[
-          "https://www.google.com/page1",
-          "https://www.google.com/page3"
+            new URL("https://www.google.com/page1"),
+            new URL("https://www.google.com/page3")
           ],
           "title":"Page 2"
-      },
-        "https://www.google.com/page3": {
+        }],
+        ["https://www.google.com/page3", {
           "href": "https://www.google.com/page3",
+          "crawl_time": expect.anything(),
           "origin": "https://www.google.com",
           "links": [],
           "title": ""
-      }
-      }]
+      }]])
     }
-    expect(JSON.stringify(a)).toBe(JSON.stringify(exp));
+    expect(a).toMatchObject(exp);
   });
 
   test('new crawler with max depth 1 layer w/ 3 layers of html anchors', async () => {
@@ -161,46 +162,45 @@ describe('testing SiteCrawler class', () => {
     expect(a.getLinks("https://www.google.com/page1").length).toBe(3); // 2 links on page 2
 
     let exp = {
-      "root": "https://www.google.com/",
-      "pages": [{
-        "https://www.google.com/":{
-        "href": "https://www.google.com/",
+      "rootPage": "https://www.google.com/",
+      "visited": new Map([
+        ["https://www.google.com/", {"href": "https://www.google.com/",
+        "crawl_time": expect.anything(),
         "origin": "https://www.google.com",
         "links": [
-          "https://www.google.com/page1",
-          "https://www.google.com/page2",
-          "https://www.google.com/page3",
+        new URL("https://www.google.com/page1"),
+        new URL("https://www.google.com/page2"),
+        new URL("https://www.google.com/page3"),
         ],
-        "title":""
-      },
-        "https://www.google.com/page1": {
-          "href": "https://www.google.com/page1",
-          "origin": "https://www.google.com",
-          "links": [
-          "https://www.google.com/page1-a",
-          "https://www.google.com/page2",
-          "https://www.google.com/page3"
-          ],
-          "title": "Page 1"
-      },
-      "https://www.google.com/page2": {
+        "title":""}],
+        ["https://www.google.com/page1",{"href": "https://www.google.com/page1",
+        "crawl_time": expect.anything(),
+        "origin": "https://www.google.com",
+        "links": [
+          new URL("https://www.google.com/page1-a"),
+          new URL("https://www.google.com/page2"),
+          new URL("https://www.google.com/page3"),
+        ],
+        "title":"Page 1"}],
+        ["https://www.google.com/page2", {
           "href":"https://www.google.com/page2",
+          "crawl_time": expect.anything(),
           "origin": "https://www.google.com",
           "links":[
-          "https://www.google.com/page1",
-          "https://www.google.com/page3"
+            new URL("https://www.google.com/page1"),
+            new URL("https://www.google.com/page3")
           ],
           "title":"Page 2"
-      },
-        "https://www.google.com/page3": {
+        }],
+        ["https://www.google.com/page3", {
           "href": "https://www.google.com/page3",
+          "crawl_time": expect.anything(),
           "origin": "https://www.google.com",
           "links": [],
           "title": ""
-      }
-      }]
+      }]])
     }
-    expect(JSON.stringify(a)).toBe(JSON.stringify(exp));
+    expect(a).toMatchObject(exp);
   });
   test('dont crawl any 3rd party anchors', async () => {
     // Provide the data object to be returned

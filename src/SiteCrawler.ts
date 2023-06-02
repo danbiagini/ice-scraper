@@ -5,7 +5,9 @@ export type Page = {
     href: string,
     title?: string,
     origin: string,
-    links: URL[]
+    links: URL[],
+    status?: number,
+    crawl_time?: number
 };
 
 export class SiteCrawler {
@@ -17,6 +19,8 @@ export class SiteCrawler {
     pages: Page[];
     cacheExpiry: number = (60 * 60 * 24 * 7);
     maxDepth: number = 10;
+    crawlStartTime?: number;
+    crawlFinishTime?: number;
 
     constructor(rootPage: string, 
                 ua?: string, 
@@ -36,7 +40,7 @@ export class SiteCrawler {
         if (max_depth !== undefined) this.maxDepth = max_depth;
     }
 
-    scrapeLinks(page: URL, html: string): Page {
+    scrapePage(page: URL, html: string): Page {
         const $ = cheerio.load(html);
 
         let count = 0;
@@ -44,7 +48,8 @@ export class SiteCrawler {
         let p: Page = {
             href: page.href,
             origin: page.origin,
-            links: links
+            links: links,
+            crawl_time: Date.now(),
         };
 
         const anchors = $('a');
@@ -68,6 +73,10 @@ export class SiteCrawler {
                 max_depth: number = this.maxDepth) {
 
         console.log("crawling %s, max_depth %d", page, max_depth);
+
+        if (this.crawlStartTime === undefined) {
+            this.crawlStartTime = Date.now();
+        }
         let delay = 0;
         if (this.avgDelaySecs) {
             delay = (this.avgDelaySecs * 2 * Math.random());
@@ -77,7 +86,7 @@ export class SiteCrawler {
         const html = await loadPage(url.href, this.cacheExpiry, this.userAgent, delay);
         console.log("parsing %d bytes for %s list", html.length, url.href);
 
-        const hrefs = this.scrapeLinks(url, html);
+        const hrefs: Page = this.scrapePage(url, html);
         this.visited.set(page, hrefs);
 
         if (max_depth == 0) {
@@ -96,6 +105,9 @@ export class SiteCrawler {
                     console.log("already crawled %s", link.href);
                 }
             }
+        }
+        if (page == this.rootPage) {
+            this.crawlFinishTime = Date.now();
         }
         console.log("finished crawling %s, found %d links", page, hrefs.links.length);
     }
@@ -117,6 +129,7 @@ export class SiteCrawler {
         let o: Object = {
             root: this.rootPage,
             filter: this.pageFilter,
+            crawl_time: new Date(this.crawlStartTime!) || undefined,
             pages: [Object.fromEntries(this.visited)]
         };
         return o;
