@@ -14,6 +14,12 @@ To run this web application which currently is just a mostly blank site with lin
 npm start
 ```
 
-To run some crawls:
+To access the local dev server in GH codespaces (which has a few links to crawl):
+```
+http://localhost:3000
+```
+
+To run some crawls (need a --url xor --url_file)
 ```
 npx ts-node src/crawl.ts --url_file <file_containing_1_site_url_per_line> --max_depth <max page traversal depth from root> --threads <max async parallel crawls>
+```

@@ -23,28 +23,30 @@ async function crawlUrl(url: string, maxDepth: number, next: Function) {
     }).finally(() => next());
 }
 
+// inspired by https://book.mixu.net/node/ch7.html
 async function runner (urls: string[], maxDepth: number, limit: number) {
 
-    let running = 0;
+    let running = 1; // this smells, but its decremented in nextCrawl so have to initialize to 1
     let task = 0;
 
-    const completeCrawl = () => {
+    const nextCrawl = () => {
         running --;
         if (task == urls.length && running == 0) {
-            console.log("finished crawling %d sites", task);
+            console.log("DONE! finished crawling %d sites", task);
+        }
+
+        while (running < limit && urls[task]) {
+            const url = urls[task];
+            console.log("runner sending %s to crawler", url);
+            crawlUrl(url, maxDepth, nextCrawl);
+            running ++;
+            task ++;
         }
     }
-    while (running < limit && urls[task]) {
-        const url = urls[task];
-        console.log("runner sending %s to crawler", url);
-        crawlUrl(url, maxDepth, completeCrawl);
-        running ++;
-        task ++;
-    }
+    nextCrawl();
 }
 
-// test 1: npx ts-node src/crawl.ts --url "https://www.abyha.org" --max_depth 4
-// 
+// test 1: npx ts-node src/crawl.ts --url "http://localhost:3000" --max_depth 4
 async function main() {
     const argv = minimist(process.argv.slice(1));
 
@@ -74,7 +76,14 @@ async function main() {
         //         return;
         //     }
         data.toString().split(/\r?\n/).forEach(line => {
-           urls.push(line);
+            if (line.length > 0) {
+                try {
+                    let u = new URL(line);
+                    urls.push(line);
+                } catch (error) {
+                    console.error("'%s' is not a valid URL", line);
+                }
+            }
         });
     }
     cachMaxAge = argv['max_age'] ? (argv['max_age']) : (60 * 60 * 24 * 7);
