@@ -1,18 +1,19 @@
-# GitHub Codespaces ♥️ Express
+# Ice Scraper
 
-Welcome to your shiny new Codespace running Express! We've got everything fired up and running for you to explore Express.
+A web site crawler inspired by https://dev.to/uiii/web-scraping-with-nodejs-and-typescript-the-scraper-part-ffn 
 
-You've got a blank canvas to work on from a git perspective as well. There's a single initial commit with the what you're seeing right now - where you go from here is up to you!
+I debated pulling one off the shelf but this was more fun.  Added some useful features, such as:
+#1 a random delay to hopefully avoid annoying server admins
+#2 support a url file
+#3 parallel async support with max thread control
+#4 generic 2nd & 3rd party link filter support
 
-Everything you do here is contained within this one codespace. There is no repository on GitHub yet. If and when you’re ready you can click "Publish Branch" and we’ll create your repository and push up your project. If you were just exploring then and have no further need for this code then you can simply delete your codespace and it's gone forever.
-
-To run this application:
+To run this web application which currently is just a mostly blank site with links for testing the crawling
 
 ```
 npm start
 ```
 
-To run a scrape:
+To run some crawls:
 ```
-npx ts-node scrape.ts
-```
+npx ts-node src/crawl.ts --url_file <file_containing_1_site_url_per_line> --max_depth <max page traversal depth from root> --threads <max async parallel crawls>
