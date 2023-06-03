@@ -8,16 +8,21 @@ import { writeFile } from 'node:fs/promises';
 let DEBUG = false;
 let cachMaxAge = (60 * 60 * 24 * 7);
 let avgDelay = 5;
-let statsFile = "output/crawl_stats.json"
+const initTime = new Date();
+let outDir = `output/${initTime.getFullYear()}_${initTime.getMonth()+1}_${initTime.getDate()}`;
+let statsFile = `${outDir}/${initTime.getTime()}_crawl_stats.json`;
 
-interface Stats {
-    time: Date,
-    completed: number,
-    total: number,
-    currentRunning: number
-}
+let runStats = {
+    time: new Date(),
+    completed: 0,
+    total: 0,
+    currentRunning: 0,
+    url: undefined,
+    url_file: undefined,
+};
 
-function updateStats(stats: Stats) {
+function updateStats(s:any) {
+    const stats = {...runStats, ...s};
     writeFile(statsFile, JSON.stringify(stats));
 }
 
@@ -26,7 +31,7 @@ async function crawlUrl(url: string, maxDepth: number, next: Function) {
 
     c.crawl().then(async () => {
         try {
-            const outFile = `./output/${urlToFileName(url)}-m${maxDepth}-${Date.now().toString()}.json`;
+            const outFile = `./${outDir}/${urlToFileName(url)}-m${maxDepth}-${Date.now().toString()}.json`;
             await writeFile(outFile, JSON.stringify(c));
         } catch (w_error) {
             console.error("error %s writing site info for %s", w_error, url);
@@ -57,7 +62,7 @@ async function runner (urls: string[], maxDepth: number, limit: number) {
         }
         updateStats({
             time: new Date(),
-            completed: task,
+            completed: task - running,
             total: urls.length,
             currentRunning: running
         });
@@ -74,7 +79,7 @@ async function main() {
         process.exit(0);
     }
     let urls = [];
-    let thirdPartiesEnabled = (link:URL): boolean => {return false};
+    let thirdPartiesEnabled = (_u:URL): boolean => {return false};
     if (argv['url']) {
         urls.push(argv['url']);
         thirdPartiesEnabled = (link: URL): boolean => {
@@ -86,6 +91,7 @@ async function main() {
             } 
             return false;
         }
+        runStats.url = argv['url'];
     } else {
         const data = fs.readFileSync(argv['url_file']);
         // should be ok for modest size files, but not the most memory efficient approach
@@ -104,11 +110,17 @@ async function main() {
                 }
             }
         });
+        runStats.url_file = argv['url_file'];
     }
     cachMaxAge = argv['max_age'] ? (argv['max_age']) : (60 * 60 * 24 * 7);
     const maxDepth = argv['max_depth'] ? argv['max_depth'] : 10;
     const limit = argv['threads'] ? argv['threads'] : 10;
+
+    if (!fs.existsSync(outDir)){
+        fs.mkdirSync(outDir, {recursive: true});
+    }
     runner(urls, maxDepth, limit);
 }
+
 
 main();

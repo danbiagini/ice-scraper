@@ -10,7 +10,7 @@ export type Page = {
     crawl_time?: number
 };
 
-let MAX_CRAWL_TIME = 1800; // 30 mins seems like more than enough
+let MAX_CRAWL_TIME = (60 * 30 * 1000); // 30 mins seems like more than enough
 
 export class SiteCrawler {
     rootPage: string;
@@ -23,16 +23,21 @@ export class SiteCrawler {
     maxDepth: number = 10;
     crawlStartTime?: number;
     crawlFinishTime?: number;
+    maxTime: number = MAX_CRAWL_TIME;
+    aborted: boolean = false;
+    rootLinkCount: number = 0;
+    rootLinkIndex: number = 0;
 
     constructor(rootPage: string, 
                 ua?: string, 
                 filter?: string, 
                 delay?: number, 
                 cache?: number,
-                max_depth?: number) {
+                max_depth?: number,
+                max_time?: number) {
         const rootUrl = new URL(rootPage);
         this.rootPage = rootUrl.href;
-        this.visited = new Map<string, Page>;
+        this.visited = new Map<string, Page>();
         this.userAgent = ua;
         this.pages = [];
 
@@ -40,6 +45,7 @@ export class SiteCrawler {
         if (delay) this.avgDelaySecs = delay;
         if (cache !== undefined) this.cacheExpiry = cache;
         if (max_depth !== undefined) this.maxDepth = max_depth;
+        if (max_time !== undefined) this.maxTime = max_time;
     }
 
     scrapePage(page: URL, html: string): Page {
@@ -74,12 +80,13 @@ export class SiteCrawler {
                 page: string = this.rootPage, 
                 max_depth: number = this.maxDepth) {
 
-        console.log("crawling %s, max_depth %d", page, max_depth);
+        console.log("crawling %s, max_depth %d, root link %d/%d ", page, max_depth, this.rootLinkIndex, this.rootLinkCount);
 
         if (this.crawlStartTime === undefined) {
             this.crawlStartTime = Date.now();
-        } else if ((Date.now() - this.crawlStartTime) > MAX_CRAWL_TIME) {
-            console.log("aborting crawl on %s due to exceeding %d seconds", page, MAX_CRAWL_TIME);
+        } else if ((Date.now() - this.crawlStartTime) > this.maxTime) {
+            this.aborted = true;
+            console.log("aborting crawl on %s due to exceeding %d seconds", page, (this.maxTime / 1000));
             return;
         }
         let delay = 0;
@@ -89,15 +96,24 @@ export class SiteCrawler {
 
         const url = new URL(page);
         const html = await loadPage(url.href, this.cacheExpiry, this.userAgent, delay);
-        console.log("parsing %d bytes for %s list", html.length, url.href);
     
         const hrefs: Page = this.scrapePage(url, html);
         this.visited.set(page, hrefs);
 
+        let isRoot = false;
+        if (page == this.rootPage) {
+            this.rootLinkCount = hrefs.links.length;
+            isRoot = true;
+        }
+
         if (max_depth == 0) {
             console.log("reached max depth, not traversing new links on %s", page)
         } else {
-            for (let link of hrefs.links) {
+            for (let i = 0; i < hrefs.links.length; i++) {
+                if (isRoot) {
+                    this.rootLinkIndex = i;
+                }
+                const link = hrefs.links[i];
                 if (!this.visited.has(link.href)) {
                     if (link.origin != url.origin) {
                         if (origin_filter === undefined || !origin_filter(link)) {
@@ -111,7 +127,7 @@ export class SiteCrawler {
                 }
             }
         }
-        if (page == this.rootPage) {
+        if (isRoot) {
             this.crawlFinishTime = Date.now();
         }
         console.log("finished crawling %s, found %d links", page, hrefs.links.length);
@@ -137,7 +153,8 @@ export class SiteCrawler {
             crawl_start: new Date(this.crawlStartTime!) || undefined,
             crawl_finish: (this.crawlFinishTime) ? new Date(this.crawlFinishTime!) : undefined,
             page_count: this.visited.size,
-            pages: [Object.fromEntries(this.visited)]
+            pages: [Object.fromEntries(this.visited)],
+            status: (this.aborted) ? "ABORTED" : (this.crawlFinishTime) ? "COMPLETE" : undefined
         };
         return o;
     }

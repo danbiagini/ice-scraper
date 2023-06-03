@@ -163,6 +163,7 @@ describe('testing SiteCrawler class', () => {
 
     let exp = {
       "rootPage": "https://www.google.com/",
+      "aborted": false,
       "visited": new Map([
         ["https://www.google.com/", {"href": "https://www.google.com/",
         "crawl_time": expect.anything(),
