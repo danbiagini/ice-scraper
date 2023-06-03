@@ -7,9 +7,22 @@ import { writeFile } from 'node:fs/promises';
 
 let DEBUG = false;
 let cachMaxAge = (60 * 60 * 24 * 7);
+let avgDelay = 5;
+let statsFile = "output/crawl_stats.json"
+
+interface Stats {
+    time: Date,
+    completed: number,
+    total: number,
+    currentRunning: number
+}
+
+function updateStats(stats: Stats) {
+    writeFile(statsFile, JSON.stringify(stats));
+}
 
 async function crawlUrl(url: string, maxDepth: number, next: Function) {
-    const c = new SiteCrawler(url, undefined, undefined, 10, cachMaxAge, maxDepth);
+    const c = new SiteCrawler(url, undefined, undefined, avgDelay, cachMaxAge, maxDepth);
 
     c.crawl().then(async () => {
         try {
@@ -42,11 +55,17 @@ async function runner (urls: string[], maxDepth: number, limit: number) {
             running ++;
             task ++;
         }
+        updateStats({
+            time: new Date(),
+            completed: task,
+            total: urls.length,
+            currentRunning: running
+        });
     }
     nextCrawl();
 }
 
-// test 1: npx ts-node src/crawl.ts --url "http://localhost:3000" --max_depth 4
+// example usage : npx ts-node src/crawl.ts --url "http://localhost:3000" --max_depth 4
 async function main() {
     const argv = minimist(process.argv.slice(1));
 

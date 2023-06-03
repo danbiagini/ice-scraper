@@ -10,6 +10,8 @@ export type Page = {
     crawl_time?: number
 };
 
+let MAX_CRAWL_TIME = 1800; // 30 mins seems like more than enough
+
 export class SiteCrawler {
     rootPage: string;
     userAgent?: string;
@@ -76,6 +78,9 @@ export class SiteCrawler {
 
         if (this.crawlStartTime === undefined) {
             this.crawlStartTime = Date.now();
+        } else if ((Date.now() - this.crawlStartTime) > MAX_CRAWL_TIME) {
+            console.log("aborting crawl on %s due to exceeding %d seconds", page, MAX_CRAWL_TIME);
+            return;
         }
         let delay = 0;
         if (this.avgDelaySecs) {
@@ -85,7 +90,7 @@ export class SiteCrawler {
         const url = new URL(page);
         const html = await loadPage(url.href, this.cacheExpiry, this.userAgent, delay);
         console.log("parsing %d bytes for %s list", html.length, url.href);
-
+    
         const hrefs: Page = this.scrapePage(url, html);
         this.visited.set(page, hrefs);
 
@@ -129,7 +134,9 @@ export class SiteCrawler {
         let o: Object = {
             root: this.rootPage,
             filter: this.pageFilter,
-            crawl_time: new Date(this.crawlStartTime!) || undefined,
+            crawl_start: new Date(this.crawlStartTime!) || undefined,
+            crawl_finish: (this.crawlFinishTime) ? new Date(this.crawlFinishTime!) : undefined,
+            page_count: this.visited.size,
             pages: [Object.fromEntries(this.visited)]
         };
         return o;
