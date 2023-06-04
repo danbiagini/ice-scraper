@@ -3,7 +3,9 @@
     "start": "nodemon src/index.js",
     "test": "npx jest",
     "devtest": "npx jest --watch",
-    "crawl": "npx ts-node src/crawl.ts"
+    "crawl": "npx ts-node src/crawl.ts",
+    "clean": "rm -rf dist/",
+    "build": "npm run clean && tsc"
   },
   "dependencies": {
     "@types/cheerio": "^0.22.31",
@@ -22,9 +24,9 @@
     "typescript": "^5.0.4"
   },
   "name": "ice-scraper",
-  "description": "Web crawler and scraper for sport (associations, leagues, schedules)",
+  "description": "Web crawler and scraper",
   "version": "1.0.0",
   "main": "src/index.js",
   "author": "d.biagini@gmail.com",
-  "license": "ISC"
+  "license": "MIT"
 }
