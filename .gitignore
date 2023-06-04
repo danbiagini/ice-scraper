@@ -3,4 +3,4 @@ page_cache/*
 !page_cache/.gitkeep
 output/*
 !output/.gitkeep
-
+dist/

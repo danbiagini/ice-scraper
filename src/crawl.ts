@@ -7,13 +7,31 @@ import { writeFile } from 'node:fs/promises';
 
 let DEBUG = false;
 let cachMaxAge = (60 * 60 * 24 * 7);
+let avgDelay = 5;
+const initTime = new Date();
+let outDir = `output/${initTime.getFullYear()}_${initTime.getMonth()+1}_${initTime.getDate()}`;
+let statsFile = `${outDir}/${initTime.getTime()}_crawl_stats.json`;
+
+let runStats = {
+    time: new Date(),
+    completed: 0,
+    total: 0,
+    currentRunning: 0,
+    url: undefined,
+    url_file: undefined,
+};
+
+function updateStats(s:any) {
+    const stats = {...runStats, ...s};
+    writeFile(statsFile, JSON.stringify(stats));
+}
 
 async function crawlUrl(url: string, maxDepth: number, next: Function) {
-    const c = new SiteCrawler(url, undefined, undefined, 10, cachMaxAge, maxDepth);
+    const c = new SiteCrawler(url, undefined, undefined, avgDelay, cachMaxAge, maxDepth);
 
     c.crawl().then(async () => {
         try {
-            const outFile = `./output/${urlToFileName(url)}-m${maxDepth}-${Date.now().toString()}.json`;
+            const outFile = `./${outDir}/${urlToFileName(url)}-m${maxDepth}-${Date.now().toString()}.json`;
             await writeFile(outFile, JSON.stringify(c));
         } catch (w_error) {
             console.error("error %s writing site info for %s", w_error, url);
@@ -23,28 +41,36 @@ async function crawlUrl(url: string, maxDepth: number, next: Function) {
     }).finally(() => next());
 }
 
+// inspired by https://book.mixu.net/node/ch7.html
 async function runner (urls: string[], maxDepth: number, limit: number) {
 
-    let running = 0;
+    let running = 1; // this smells, but its decremented in nextCrawl so have to initialize to 1
     let task = 0;
 
-    const completeCrawl = () => {
+    const nextCrawl = () => {
         running --;
         if (task == urls.length && running == 0) {
-            console.log("finished crawling %d sites", task);
+            console.log("DONE! finished crawling %d sites", task);
         }
+
+        while (running < limit && urls[task]) {
+            const url = urls[task];
+            console.log("runner sending %s to crawler", url);
+            crawlUrl(url, maxDepth, nextCrawl);
+            running ++;
+            task ++;
+        }
+        updateStats({
+            time: new Date(),
+            completed: task - running,
+            total: urls.length,
+            currentRunning: running
+        });
     }
-    while (running < limit && urls[task]) {
-        const url = urls[task];
-        console.log("runner sending %s to crawler", url);
-        crawlUrl(url, maxDepth, completeCrawl);
-        running ++;
-        task ++;
-    }
+    nextCrawl();
 }
 
-// test 1: npx ts-node src/crawl.ts --url "https://www.abyha.org" --max_depth 4
-// 
+// example usage : npx ts-node src/crawl.ts --url "http://localhost:3000" --max_depth 4
 async function main() {
     const argv = minimist(process.argv.slice(1));
 
@@ -53,7 +79,7 @@ async function main() {
         process.exit(0);
     }
     let urls = [];
-    let thirdPartiesEnabled = (link:URL): boolean => {return false};
+    let thirdPartiesEnabled = (_u:URL): boolean => {return false};
     if (argv['url']) {
         urls.push(argv['url']);
         thirdPartiesEnabled = (link: URL): boolean => {
@@ -65,6 +91,7 @@ async function main() {
             } 
             return false;
         }
+        runStats.url = argv['url'];
     } else {
         const data = fs.readFileSync(argv['url_file']);
         // should be ok for modest size files, but not the most memory efficient approach
@@ -74,13 +101,26 @@ async function main() {
         //         return;
         //     }
         data.toString().split(/\r?\n/).forEach(line => {
-           urls.push(line);
+            if (line.length > 0) {
+                try {
+                    let u = new URL(line);
+                    urls.push(line);
+                } catch (error) {
+                    console.error("'%s' is not a valid URL", line);
+                }
+            }
         });
+        runStats.url_file = argv['url_file'];
     }
     cachMaxAge = argv['max_age'] ? (argv['max_age']) : (60 * 60 * 24 * 7);
     const maxDepth = argv['max_depth'] ? argv['max_depth'] : 10;
     const limit = argv['threads'] ? argv['threads'] : 10;
+
+    if (!fs.existsSync(outDir)){
+        fs.mkdirSync(outDir, {recursive: true});
+    }
     runner(urls, maxDepth, limit);
 }
+
 
 main();
