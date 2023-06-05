@@ -5,7 +5,9 @@
     "devtest": "npx jest --watch",
     "crawl": "npx ts-node src/crawl.ts",
     "clean": "rm -rf dist/",
-    "build": "npm run clean && tsc"
+    "build": "npm run clean && tsc",
+    "prepare": "npm run build",
+    "prepublishOnly": "npm run test"
   },
   "dependencies": {
     "@types/cheerio": "^0.22.31",
@@ -29,6 +31,7 @@
     "registry": "https://npm.pkg.github.com"
   },
   "repository": "https://github.com/danbiagini/ice-scraper",
+  "files": ["dist/**/*"],
   "version": "1.0.0",
   "main": "src/index.js",
   "author": "d.biagini@gmail.com",
