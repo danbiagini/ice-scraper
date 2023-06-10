@@ -112,7 +112,11 @@ async function main() {
         });
         runStats.url_file = argv['url_file'];
     }
-    cachMaxAge = argv['max_age'] ? (argv['max_age']) : (60 * 60 * 24 * 7);
+
+    if (argv['max_age'] !== undefined) {
+        cachMaxAge = argv['max_age'];
+    }
+
     const maxDepth = argv['max_depth'] ? argv['max_depth'] : 10;
     const limit = argv['threads'] ? argv['threads'] : 10;
 
