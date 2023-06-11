@@ -25,3 +25,6 @@ To access the local dev server in GH codespaces (which has a few links to crawl)
 ```
 http://localhost:3000
 ```
+
+To publish a new version of the lib
+```npm publish```
