@@ -47,3 +47,8 @@ The library is designed to handle two types of tasks:
 To build the scraper, you'll need to do some experimentation on a page sample.  The easiest way is to use jquery in the browser's javascript console.  Here's a nice [stackoverflow post](https://stackoverflow.com/questions/7474354/include-jquery-in-the-javascript-console) on how to inject jquery on a site (if it doesn't already have it).  Once you have jquery installed, you can use the console to execute jquery selections following the [jquery docs](https://learn.jquery.com/using-jquery-core/selecting-elements/)  
 
 [^1]: the examples use [cheerio](https://cheerio.js.org/) for html scraping, which seems like the best option as of this writing.
+
+
+## TODO
+1. The plugin model has a major issue, it doesn't work with crawling multiple pages since the PluginManager is keyed on page href.  Subsequent pages crawled won't have a plugin associated with the page.
+1. Ideally the plugin should be able to return a set of new links to crawl (as opposed to only being able to crawl via the 'base' <a href> scraper)
