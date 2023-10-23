@@ -1,5 +1,6 @@
 import minimist from 'minimist';
 import { SiteCrawler } from './SiteCrawler';
+import { PluginManager, ScrapePlugin } from './PluginManager';
 import { urlToFileName } from './loader';
 import fs = require('fs');
 import { writeFile } from 'node:fs/promises';
@@ -26,10 +27,10 @@ function updateStats(s:any) {
     writeFile(statsFile, JSON.stringify(stats));
 }
 
-async function crawlUrl(url: string, maxDepth: number, next: Function) {
-    const c = new SiteCrawler(url, undefined, undefined, avgDelay, cachMaxAge, maxDepth);
+async function crawlUrl(url: string, maxDepth: number, next: Function, plugs: PluginManager) {
+    const c = new SiteCrawler(url, plugs, undefined, undefined, avgDelay, cachMaxAge, maxDepth, undefined);
 
-    c.crawl().then(async () => {
+    c.crawl(undefined, url, maxDepth).then(async () => {
         try {
             const outFile = `./${outDir}/${urlToFileName(url)}-m${maxDepth}-${Date.now().toString()}.json`;
             await writeFile(outFile, JSON.stringify(c));
@@ -42,12 +43,14 @@ async function crawlUrl(url: string, maxDepth: number, next: Function) {
 }
 
 // inspired by https://book.mixu.net/node/ch7.html
-async function runner (urls: string[], maxDepth: number, limit: number) {
+async function runner (urls: string[], maxDepth: number, limit: number, plugs: string) {
+
+    const plugManager = new PluginManager();   
 
     let running = 1; // this smells, but its decremented in nextCrawl so have to initialize to 1
     let task = 0;
 
-    const nextCrawl = () => {
+    const nextCrawl = async () => {
         running --;
         if (task == urls.length && running == 0) {
             console.log("DONE! finished crawling %d sites", task);
@@ -55,10 +58,11 @@ async function runner (urls: string[], maxDepth: number, limit: number) {
 
         while (running < limit && urls[task]) {
             const url = urls[task];
-            console.log("runner sending %s to crawler", url);
-            crawlUrl(url, maxDepth, nextCrawl);
-            running ++;
             task ++;
+            running ++;
+            console.log("runner sending %s to crawler", url);
+            await plugManager.loadFile(plugs, url);
+            crawlUrl(url, maxDepth, nextCrawl, plugManager);
         }
         updateStats({
             time: new Date(),
@@ -94,14 +98,12 @@ async function main() {
         runStats.url = argv['url'];
     } else {
         const data = fs.readFileSync(argv['url_file']);
-        // should be ok for modest size files, but not the most memory efficient approach
-        // fs.readFile(argv['url_file'], (error, data) => {
-        //     if (error) {
-        //         console.error("Error reading url_file %s, %s", argv['url_file'], error);
-        //         return;
-        //     }
+
         data.toString().split(/\r?\n/).forEach(line => {
             if (line.length > 0) {
+                if (line.charAt(0) === '"' && line.charAt(line.length - 1) === '"') {
+                    line = line.substring(1, line.length - 1);
+                }
                 try {
                     let u = new URL(line);
                     urls.push(line);
@@ -112,18 +114,19 @@ async function main() {
         });
         runStats.url_file = argv['url_file'];
     }
+    const maxDepth = (argv['max_depth'] !== undefined) ? argv['max_depth'] : 10;
 
     if (argv['max_age'] !== undefined) {
         cachMaxAge = argv['max_age'];
     }
 
-    const maxDepth = argv['max_depth'] ? argv['max_depth'] : 10;
     const limit = argv['threads'] ? argv['threads'] : 10;
-
+    const plugin = argv['plugin_file'];
+ 
     if (!fs.existsSync(outDir)){
         fs.mkdirSync(outDir, {recursive: true});
     }
-    runner(urls, maxDepth, limit);
+    runner(urls, maxDepth, limit, plugin);
 }
 
 

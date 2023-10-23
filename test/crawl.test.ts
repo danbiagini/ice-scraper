@@ -2,14 +2,16 @@ import axios from 'axios';
 import * as snips from "./html-snips"
 import { SiteCrawler } from '../src/SiteCrawler';
 import {expect, jest, test} from '@jest/globals';
+import { PluginManager } from '../src/PluginManager';
 
 // https://www.csrhymes.com/2022/03/09/mocking-axios-with-jest-and-typescript.html
 jest.mock('axios');
 const mockedAxios = axios as jest.Mocked<typeof axios>;
+const plugs = new PluginManager();
 
 describe('testing SiteCrawler class', () => {
   test('new crawler object should result in instance', () => {
-    const a = new SiteCrawler("https://www.google.com");
+    const a = new SiteCrawler("https://www.google.com", plugs);
     expect(a).toBeInstanceOf(SiteCrawler);
   });
 
@@ -26,7 +28,7 @@ describe('testing SiteCrawler class', () => {
       data: snips.assoc_info_html,
       status: 200,
     });
-    const a = new SiteCrawler("https://www.google.com", undefined, undefined, undefined, 0);
+    const a = new SiteCrawler("https://www.google.com", plugs, undefined, undefined, undefined, 0);
     expect(a.pageCount()).toBe(0);
 
     await a.crawl(() => true, undefined, undefined);
@@ -61,7 +63,7 @@ describe('testing SiteCrawler class', () => {
       data: snips.html_page_2,
       status: 200
     });
-    const a = new SiteCrawler("https://www.google.com", undefined, undefined, undefined, 0);
+    const a = new SiteCrawler("https://www.google.com", plugs, undefined, undefined, undefined, 0);
     expect(a.pageCount()).toBe(0);
 
     await a.crawl(() => false);
@@ -100,7 +102,7 @@ describe('testing SiteCrawler class', () => {
         "crawl_time": expect.anything(),
         "origin": "https://www.google.com",
         "links": [],
-        "title": ""}],
+        "title": "Assoc Info Title No A"}],
         ["https://www.google.com/page2", {
           "href":"https://www.google.com/page2",
           "crawl_time": expect.anything(),
@@ -116,7 +118,7 @@ describe('testing SiteCrawler class', () => {
           "crawl_time": expect.anything(),
           "origin": "https://www.google.com",
           "links": [],
-          "title": ""
+          "title": "Assoc Info Title No A"
       }]])
     }
     expect(a).toMatchObject(exp);
@@ -144,6 +146,7 @@ describe('testing SiteCrawler class', () => {
       status: 200
     });
     const a = new SiteCrawler("https://www.google.com", 
+                              plugs,
                               undefined, 
                               undefined, 
                               undefined, 
@@ -198,7 +201,7 @@ describe('testing SiteCrawler class', () => {
           "crawl_time": expect.anything(),
           "origin": "https://www.google.com",
           "links": [],
-          "title": ""
+          "title": "Assoc Info Title No A"
       }]])
     }
     expect(a).toMatchObject(exp);
@@ -216,7 +219,7 @@ describe('testing SiteCrawler class', () => {
       data: snips.assoc_info_html,
       status: 200,
     });
-    const a = new SiteCrawler("https://www.google.com", undefined, undefined, undefined, 0);
+    const a = new SiteCrawler("https://www.google.com", plugs, undefined, undefined, undefined, 0);
     expect(a.pageCount()).toBe(0);
 
     await a.crawl(() => false, undefined, undefined);
@@ -240,7 +243,7 @@ describe('testing SiteCrawler class', () => {
       data: snips.assoc_info_html,
       status: 200,
     });
-    const a = new SiteCrawler("https://www.google.com", undefined, undefined, undefined, 0);
+    const a = new SiteCrawler("https://www.google.com", plugs, undefined, undefined, undefined, 0);
     expect(a.pageCount()).toBe(0);
 
     await a.crawl((link: URL) => {

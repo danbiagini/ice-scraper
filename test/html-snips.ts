@@ -1,4 +1,4 @@
-export const assoc_info_html = `<html><div class="desc-container-table">
+export const assoc_info_html = `<html><head><title>Assoc Info Title</title></head><div class="desc-container-table">
 <table>
     <tr>
         <th>Team Name</th>
@@ -257,6 +257,7 @@ export const html_no_a = `
 <!DOCTYPE html>
 <html lang = "en">
 <head>
+<title>Assoc Info Title No A</title>
 <div class="profile-upd-del">
 </head>
 </html>

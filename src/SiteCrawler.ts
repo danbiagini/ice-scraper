@@ -1,5 +1,6 @@
 import cheerio from 'cheerio';
 import { loadPage } from './loader';
+import { PluginManager } from './PluginManager';
 
 export type Page = {
     href: string,
@@ -27,8 +28,11 @@ export class SiteCrawler {
     aborted: boolean = false;
     rootLinkCount: number = 0;
     rootLinkIndex: number = 0;
+    // scrapePlugin: Function = (p: Page, html: string) => {return};
+    plugins: PluginManager;
 
     constructor(rootPage: string, 
+                plugins: PluginManager,
                 ua?: string, 
                 filter?: string, 
                 delay?: number, 
@@ -46,12 +50,13 @@ export class SiteCrawler {
         if (cache !== undefined) this.cacheExpiry = cache;
         if (max_depth !== undefined) this.maxDepth = max_depth;
         if (max_time !== undefined) this.maxTime = max_time;
+
+        this.plugins = plugins;
     }
 
     scrapePage(page: URL, html: string): Page {
         const $ = cheerio.load(html);
 
-        let count = 0;
         let links: URL[] = [];
         let p: Page = {
             href: page.href,
@@ -73,6 +78,9 @@ export class SiteCrawler {
             }
 
         }
+
+        this.plugins.scrape(p, html);
+
         return p;
     }
 
@@ -98,6 +106,7 @@ export class SiteCrawler {
         const html = await loadPage(url.href, this.cacheExpiry, this.userAgent, delay);
     
         const hrefs: Page = this.scrapePage(url, html);
+
         this.visited.set(page, hrefs);
 
         let isRoot = false;
@@ -154,7 +163,8 @@ export class SiteCrawler {
             crawl_finish: (this.crawlFinishTime) ? new Date(this.crawlFinishTime!) : undefined,
             page_count: this.visited.size,
             pages: [Object.fromEntries(this.visited)],
-            status: (this.aborted) ? "ABORTED" : (this.crawlFinishTime) ? "COMPLETE" : undefined
+            status: (this.aborted) ? "ABORTED" : (this.crawlFinishTime) ? "COMPLETE" : undefined,
+            plugins: [Object.fromEntries(this.plugins.serialize())]
         };
         return o;
     }
