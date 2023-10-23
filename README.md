@@ -51,4 +51,4 @@ To build the scraper, you'll need to do some experimentation on a page sample.  
 
 ## TODO
 1. The plugin model has a major issue, it doesn't work with crawling multiple pages since the PluginManager is keyed on page href.  Subsequent pages crawled won't have a plugin associated with the page.  This is why the test *new crawler with a test plugin and 1 layer of anchors in html content* is failing.
-1. Ideally the plugin should be able to return a set of new links to crawl (as opposed to only being able to crawl via the 'base' <a href> scraper)
+1. Ideally the plugin should be able to return a set of new links to crawl (as opposed to only being able to crawl via the 'base' ```<a href>``` scraper)
